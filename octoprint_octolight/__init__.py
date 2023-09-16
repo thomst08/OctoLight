@@ -81,14 +81,14 @@ class OctoLightPlugin(
 	def on_after_startup(self):
 		self.light_state = False
 
-		self._logger.info("--------------------------------------------")
-		self._logger.info("OctoLight started, listening for GET request")
-		self._logger.info("Light pin: {}, inverted_input: {}, Delay Time: {}".format(
+		self._logger.debug ("--------------------------------------------")
+		self._logger.debug ("OctoLight started, listening for GET request")
+		self._logger.debug ("Light pin: {}, inverted_input: {}, Delay Time: {}".format(
 			self._settings.get(["light_pin"]),
 			self._settings.get(["inverted_output"]),
 			self._settings.get(["delay_off"])
 		))
-		self._logger.info("--------------------------------------------")
+		self._logger.debug ("--------------------------------------------")
 
 		# Setting the default state of pin
 		GPIO.setup(int(self._settings.get(["light_pin"])), GPIO.OUT)
@@ -125,7 +125,7 @@ class OctoLightPlugin(
 		else:
 			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
 
-		self._logger.info("Got request. Light state: {}".format(
+		self._logger.debug ("Got request. Light state: {}".format(
 			self.light_state
 		))
 
@@ -176,7 +176,7 @@ class OctoLightPlugin(
 	#This stops the current timer, this does not control the light
 	def stopTimer(self):
 		if self.delayed_state is not None:
-			self._logger.info("Stopping schedule")
+			self._logger.debug("Stopping schedule")
 			self.delayed_state.cancel()
 			self.delayed_state = None
 
@@ -186,17 +186,17 @@ class OctoLightPlugin(
 	#Check if the timer is already running, if so, stop it, then set it up with a new time
 	def startTimer(self, mins):
 		if math.isnan(int(mins)):
-			self._logger.info("Error: Received value that is not an int: {}".format(
+			self._logger.error("Error: Received value that is not an int: {}".format(
 				mins
 			))
 			return
 		
 		self.stopTimer()
 
-		self._logger.info("Setting up schedule")
+		self._logger.debug("Setting up schedule")
 		self.delayed_state = RepeatedTimer(int(mins) * 60, self.delayed_off)
 		self.delayed_state.start()
-		self._logger.info("Time till shutoff: {} seconds".format(
+		self._logger.debug("Time till shutoff: {} seconds".format(
 			int(mins) * 60
 		))
 
@@ -212,7 +212,7 @@ class OctoLightPlugin(
 	def delayed_off_setup(self, mins):
 		#Make sure a value was sent
 		if math.isnan(int(mins)):
-			self._logger.info("Error: Received value that is not an int: {}".format(
+			self._logger.error("Error: Received value that is not an int: {}".format(
 				mins
 			))
 			return
@@ -256,7 +256,7 @@ class OctoLightPlugin(
 		elif user_setting == "delay":
 			self.delayed_off_setup(self._settings.get(["delay_off"]))
 		else:
-			self._logger.info("Unknown event trigger, received: {}".format(
+			self._logger.warning("Unknown event trigger, received: {}".format(
 				user_setting
 			))
 
