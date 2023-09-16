@@ -1,5 +1,5 @@
 # OctoLight
-A simple plugin that adds a button to the navigation bar for toggleing a GPIO pin on the Raspberry Pi.
+A simple plugin that adds a button to the navigation bar for toggling a GPIO pin on the Raspberry Pi. This plugin has the function to turn on or off based on a printer event or manually through a user interaction. Printer events can also trigger a light turn off after a specified time.
 
 ![WebUI interface](img/screenshoot.png)
 
