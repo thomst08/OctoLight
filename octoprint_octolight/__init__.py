@@ -15,28 +15,28 @@ GPIO.setwarnings(False)
 
 
 class OctoLightPlugin(
-		octoprint.plugin.AssetPlugin,
-		octoprint.plugin.StartupPlugin,
-		octoprint.plugin.TemplatePlugin,
-		octoprint.plugin.SimpleApiPlugin,
-		octoprint.plugin.SettingsPlugin,
-		octoprint.plugin.EventHandlerPlugin,
-		octoprint.plugin.RestartNeedingPlugin
-	):
+	octoprint.plugin.AssetPlugin,
+	octoprint.plugin.StartupPlugin,
+	octoprint.plugin.TemplatePlugin,
+	octoprint.plugin.SimpleApiPlugin,
+	octoprint.plugin.SettingsPlugin,
+	octoprint.plugin.EventHandlerPlugin,
+	octoprint.plugin.RestartNeedingPlugin
+):
 
 	event_options = [
-		{ "name": "Nothing", "value": "na" },
-		{ "name": "Turn Light On", "value": "on" },
-		{ "name": "Turn Light Off", "value": "off" },
-		{ "name": "Delay Turn Light Off", "value": "delay" }
+		{"name": "Nothing", "value": "na"},
+		{"name": "Turn Light On", "value": "on"},
+		{"name": "Turn Light Off", "value": "off"},
+		{"name": "Delay Turn Light Off", "value": "delay"}
 	]
 	monitored_events = [
-		{ "label": "Printer Start:", "settingName": "event_printer_start"},
-		{ "label": "Printer Done:", "settingName": "event_printer_done"},
-		{ "label": "Printer Failed:", "settingName": "event_printer_failed"},
-		{ "label": "Printer Cancelled:", "settingName": "event_printer_cancelled"},
-		{ "label": "Printer Paused:", "settingName": "event_printer_paused"},
-		{ "label": "Printer Error:", "settingName": "event_printer_error"}
+		{"label": "Printer Start:", "settingName": "event_printer_start"},
+		{"label": "Printer Done:", "settingName": "event_printer_done"},
+		{"label": "Printer Failed:", "settingName": "event_printer_failed"},
+		{"label": "Printer Cancelled:", "settingName": "event_printer_cancelled"},
+		{"label": "Printer Paused:", "settingName": "event_printer_paused"},
+		{"label": "Printer Error:", "settingName": "event_printer_error"}
 	]
 
 	light_state = False
@@ -44,17 +44,17 @@ class OctoLightPlugin(
 
 	def get_settings_defaults(self):
 		return dict(
-			light_pin = 13,
-			inverted_output = False,
-			delay_off = 5,
+			light_pin=13,
+			inverted_output=False,
+			delay_off=5,
 
 			#Setup the default value for each event
-			event_printer_start = self.event_options[0]["value"],
-			event_printer_done = self.event_options[0]["value"],
-			event_printer_failed = self.event_options[0]["value"],
-			event_printer_cancelled = self.event_options[0]["value"],
-			event_printer_paused = self.event_options[0]["value"],
-			event_printer_error = self.event_options[0]["value"]
+			event_printer_start=self.event_options[0]["value"],
+			event_printer_done=self.event_options[0]["value"],
+			event_printer_failed=self.event_options[0]["value"],
+			event_printer_cancelled=self.event_options[0]["value"],
+			event_printer_paused=self.event_options[0]["value"],
+			event_printer_error=self.event_options[0]["value"]
 		)
 
 	def get_template_configs(self):
@@ -83,11 +83,13 @@ class OctoLightPlugin(
 
 		self._logger.debug ("--------------------------------------------")
 		self._logger.debug ("OctoLight started, listening for GET request")
-		self._logger.debug ("Light pin: {}, inverted_input: {}, Delay Time: {}".format(
-			self._settings.get(["light_pin"]),
-			self._settings.get(["inverted_output"]),
-			self._settings.get(["delay_off"])
-		))
+		self._logger.debug (
+			"Light pin: {}, inverted_input: {}, Delay Time: {}".format(
+				self._settings.get(["light_pin"]),
+				self._settings.get(["inverted_output"]),
+				self._settings.get(["delay_off"])
+			)
+		)
 		self._logger.debug ("--------------------------------------------")
 
 		# Setting the default state of pin
@@ -110,7 +112,9 @@ class OctoLightPlugin(
         ))
         """
 
-		self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.light_state))
+		self._plugin_manager.send_plugin_message(
+			self._identifier, dict(isLightOn=self.light_state)
+		)
 
 	def light_toggle(self):
 		# Sets the GPIO every time, if user changed it in the settings.
@@ -125,11 +129,11 @@ class OctoLightPlugin(
 		else:
 			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
 
-		self._logger.debug ("Got request. Light state: {}".format(
-			self.light_state
-		))
+		self._logger.debug ("Got request. Light state: {}".format(self.light_state))
 
-		self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.light_state))
+		self._plugin_manager.send_plugin_message(
+			self._identifier, dict(isLightOn=self.light_state)
+		)
 
 	def light_on(self):
 		if not self.light_state:
@@ -141,8 +145,8 @@ class OctoLightPlugin(
 			self.light_toggle()
 
 	def on_api_get(self, request):
-		action = request.args.get('action', default="toggle", type=str)
-		delay = request.args.get('delay', default=self._settings.get(["delay_off"]), type=int)
+		action = request.args.get("action", default="toggle", type=str)
+		delay = request.args.get("delay", default=self._settings.get(["delay_off"]), type=int)
 
 		if action == "toggle":
 			self.light_toggle()
@@ -186,9 +190,9 @@ class OctoLightPlugin(
 	#Check if the timer is already running, if so, stop it, then set it up with a new time
 	def startTimer(self, mins):
 		if math.isnan(int(mins)):
-			self._logger.error("Error: Received value that is not an int: {}".format(
-				mins
-			))
+			self._logger.error(
+				"Error: Received value that is not an int: {}".format(mins)
+			)
 			return
 		
 		self.stopTimer()
@@ -196,9 +200,7 @@ class OctoLightPlugin(
 		self._logger.debug("Setting up schedule")
 		self.delayed_state = RepeatedTimer(int(mins) * 60, self.delayed_off)
 		self.delayed_state.start()
-		self._logger.debug("Time till shutoff: {} seconds".format(
-			int(mins) * 60
-		))
+		self._logger.debug("Time till shutoff: {} seconds".format(int(mins) * 60))
 
 		return
 
@@ -212,9 +214,7 @@ class OctoLightPlugin(
 	def delayed_off_setup(self, mins):
 		#Make sure a value was sent
 		if math.isnan(int(mins)):
-			self._logger.error("Error: Received value that is not an int: {}".format(
-				mins
-			))
+			self._logger.error("Error: Received value that is not an int: {}".format(mins))
 			return
 		
 		#Stop any past timers
@@ -226,7 +226,9 @@ class OctoLightPlugin(
 
 	def on_event(self, event, payload):
 		if event == Events.CLIENT_OPENED:
-			self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.light_state))
+			self._plugin_manager.send_plugin_message(
+				self._identifier, dict(isLightOn=self.light_state)
+			)
 			return
 		if event == Events.PRINT_STARTED:
 			self.trigger_event(self._settings.get(["event_printer_start"])[0])
@@ -256,9 +258,9 @@ class OctoLightPlugin(
 		elif user_setting == "delay":
 			self.delayed_off_setup(self._settings.get(["delay_off"]))
 		else:
-			self._logger.warning("Unknown event trigger, received: {}".format(
-				user_setting
-			))
+			self._logger.warning(
+				"Unknown event trigger, received: {}".format(user_setting)
+			)
 
 		return
 
@@ -267,13 +269,11 @@ class OctoLightPlugin(
 			octolight=dict(
 				displayName="OctoLight",
 				displayVersion=self._plugin_version,
-
 				type="github_release",
 				current=self._plugin_version,
-
-				user="gigibu5",
+				user="thomst08",
 				repo="OctoLight",
-				pip="https://github.com/gigibu5/OctoLight/archive/{target}.zip"
+				pip="https://github.com/thomst08/OctoLight/archive/{target}.zip"
 			)
 		)
 
