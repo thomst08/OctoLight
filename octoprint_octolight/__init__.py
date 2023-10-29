@@ -54,7 +54,12 @@ class OctoLightPlugin(
 			event_printer_failed=self.event_options[0]["value"],
 			event_printer_cancelled=self.event_options[0]["value"],
 			event_printer_paused=self.event_options[0]["value"],
-			event_printer_error=self.event_options[0]["value"]
+			event_printer_error=self.event_options[0]["value"],
+
+			#Setup the default vales for custom GCode
+			enable_custom_gcode=False,
+			custom_gcode_on="OCTOLIGHT ON",
+			custom_gcode_off="OCTOLIGHT OFF"
 		)
 
 	def get_template_configs(self):
@@ -99,7 +104,7 @@ class OctoLightPlugin(
 		else:
 			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
 
-		#Because light is set to ff on startup we don't need to retrieve the current state
+		#Because light is set to off on startup we don't need to retrieve the current state
 		"""
 		r = self.light_state = GPIO.input(int(self._settings.get(["light_pin"])))
         if r==1:
@@ -263,7 +268,21 @@ class OctoLightPlugin(
 			)
 
 		return
+	
+	#Handles when gcode is sent to the print, used to detect custom gcode if enabled
+	def gcode_trigger_event(self, comm_instance, phase, cmd, cmd_type, gcode, subcode=None, tags=None, *args, **kwargs):
+		if not self._settings.get(["enable_custom_gcode"]):
+			return
 
+		if cmd == self._settings.get(["custom_gcode_on"]):
+			self._logger.debug("OctoLight Received custom code: on")
+			self.light_on()
+		elif cmd == self._settings.get(["custom_gcode_off"]):
+			self._logger.debug("OctoLight Received custom code: off")
+			self.light_off()
+		
+		return
+	
 	def get_update_information(self):
 		return dict(
 			octolight=dict(
@@ -282,5 +301,6 @@ __plugin_implementation__ = OctoLightPlugin()
 
 __plugin_hooks__ = {
 	"octoprint.plugin.softwareupdate.check_config":
-	__plugin_implementation__.get_update_information
+	__plugin_implementation__.get_update_information,
+	"octoprint.comm.protocol.gcode.sent": __plugin_implementation__.gcode_trigger_event
 }
