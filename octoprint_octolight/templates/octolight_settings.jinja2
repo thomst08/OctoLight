@@ -35,5 +35,28 @@
 			</div>
 			<br />
 		{% endfor %}
+
+		<h4>Custom GCode</h4>
+		<div class="controls">
+			<label class="checkbox">
+				<input type="checkbox" data-bind="checked: settings.plugins.octolight.enable_custom_gcode">
+				{{ _('Enable Custom GCODE Detection') }}
+			</label>
+		</div>
+		<br />
+
+		<label class="control-label">{{ _('GCODE for Light On') }}</label>
+		<div class="controls">
+			<input id="custom_gcode_on-input" type="text" maxlength="100"
+				data-bind="value: settings.plugins.octolight.custom_gcode_on">
+		</div>
+		<br />
+
+		<label class="control-label">{{ _('GCODE for Light Off') }}</label>
+		<div class="controls">
+			<input id="custom_gcode_off-input" type="text" maxlength="100"
+				data-bind="value: settings.plugins.octolight.custom_gcode_off">
+		</div>
+		<br />
 	</div>
 </form>
