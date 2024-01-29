@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-import octoprint.plugin
-from octoprint.events import Events
-import flask
-
 import math
-from octoprint.util import RepeatedTimer
 
+import flask
+import octoprint.plugin
 import RPi.GPIO as GPIO
+from octoprint.access.permissions import Permissions
+from octoprint.events import Events
+from octoprint.util import RepeatedTimer
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
@@ -149,6 +149,8 @@ class OctoLightPlugin(
 		if self.light_state:
 			self.light_toggle()
 
+
+	@Permissions.CONTROL.require(403)
 	def on_api_get(self, request):
 		action = request.args.get("action", default="toggle", type=str)
 		delay = request.args.get("delay", default=self._settings.get(["delay_off"]), type=int)
@@ -283,6 +285,18 @@ class OctoLightPlugin(
 		
 		return
 	
+
+	def get_additional_permissions(self, *args, **kwargs):
+		return [
+				dict(key="CONTROL",
+					name="Control",
+					description=gettext("Allows switching relays on/off"),
+					roles=["admin"],
+					dangerous=True,
+					default_groups=[Permissions.ADMIN_GROUP])
+				]
+	
+	
 	def get_update_information(self):
 		return dict(
 			octolight=dict(
@@ -302,5 +316,6 @@ __plugin_implementation__ = OctoLightPlugin()
 __plugin_hooks__ = {
 	"octoprint.plugin.softwareupdate.check_config":
 	__plugin_implementation__.get_update_information,
-	"octoprint.comm.protocol.gcode.sent": __plugin_implementation__.gcode_trigger_event
+	"octoprint.comm.protocol.gcode.sent": __plugin_implementation__.gcode_trigger_event,
+	"octoprint.access.permissions": __plugin_implementation__.get_additional_permissions
 }
