@@ -42,7 +42,7 @@ Currently, you can configure settings:
 ## API
 Base API URL: `GET http://YOUR_OCTOPRINT_SERVER/api/plugin/octolight?action=ACTION_NAME`
 
-This API always returns updated light state in JSON: `{state: true}`
+This API always returns updated light state in JSON: `{state: true}` <br />
 Any API call will require a API key with the "Control" permission.  Without this, you will receive a 403 error.
 
 _(if the action parameter not given, the action toggle will be used by default)_
