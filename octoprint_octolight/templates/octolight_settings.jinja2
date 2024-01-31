@@ -13,6 +13,17 @@
 				{{ _('Inverted output') }}
 			</label>
 		</div>
+		<div class="controls">
+			<label class="checkbox">
+				<input type="checkbox" data-bind="checked: settings.plugins.octolight.toggle_output">
+				{{ _('Light is a button') }}
+			</label>
+		</div>
+		<label class="control-label">{{ _('Button Press delay (ms)') }}</label>
+		<div style="margin-bottom: 8px;" class="controls">
+			<input id="toggle_delay-input" type="number" min="50" max="5000" class="input-small"
+				data-bind="value: settings.plugins.octolight.toggle_delay">
+		</div>
 
 		<label class="control-label">{{ _('Delay Light Off (mins)') }}</label>
 		<div class="controls">

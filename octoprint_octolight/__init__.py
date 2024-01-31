@@ -46,6 +46,8 @@ class OctoLightPlugin(
 		return dict(
 			light_pin=13,
 			inverted_output=False,
+			toggle_output=False,
+			toggle_delay=200,
 			delay_off=5,
 
 			#Setup the default value for each event
@@ -85,7 +87,7 @@ class OctoLightPlugin(
 
 	def on_after_startup(self):
 		self.light_state = False
-
+		
 		self._logger.debug ("--------------------------------------------")
 		self._logger.debug ("OctoLight started, listening for GET request")
 		self._logger.debug (
@@ -121,6 +123,12 @@ class OctoLightPlugin(
 			self._identifier, dict(isLightOn=self.light_state)
 		)
 
+	def light_button_toggle(self):
+		GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
+		self.delayed_toggle.cancel()
+		self.delayed_toggle = None
+
+
 	def light_toggle(self):
 		# Sets the GPIO every time, if user changed it in the settings.
 		GPIO.setup(int(self._settings.get(["light_pin"])), GPIO.OUT)
@@ -128,8 +136,13 @@ class OctoLightPlugin(
 		self.light_state = not self.light_state
 		self.stopTimer()
 
+		# Handles a toggle on and off as a button press
+		if self._settings.get(["toggle_output"]):
+			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.HIGH)
+			self.delayed_toggle = RepeatedTimer(float(self._settings.get(["toggle_delay"])) / 1000, self.light_button_toggle)
+			self.delayed_toggle.start()
 		# Sets the light state depending on the inverted output setting (XOR)
-		if self.light_state ^ self._settings.get(["inverted_output"]):
+		elif self.light_state ^ self._settings.get(["inverted_output"]):
 			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.HIGH)
 		else:
 			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
@@ -141,12 +154,12 @@ class OctoLightPlugin(
 		)
 
 	def light_on(self):
-		if not self.light_state:
+		if not self.light_state or self._settings.get(["toggle_output"]):
 			self.light_toggle()
 
 	def light_off(self):
 		self.stopTimer()
-		if self.light_state:
+		if self.light_state or self._settings.get(["toggle_output"]):
 			self.light_toggle()
 
 
