@@ -69,5 +69,12 @@
 				data-bind="value: settings.plugins.octolight.custom_gcode_off">
 		</div>
 		<br />
+
+		<label class="control-label">{{ _('GCODE for Delayed Off') }}</label>
+		<div class="controls">
+			<input id="custom_gcode_off-input" type="text" maxlength="100"
+				data-bind="value: settings.plugins.octolight.custom_gcode_delay_off">
+		</div>
+		<br />
 	</div>
 </form>

@@ -61,7 +61,8 @@ class OctoLightPlugin(
 			#Setup the default vales for custom GCode
 			enable_custom_gcode=False,
 			custom_gcode_on="OCTOLIGHT ON",
-			custom_gcode_off="OCTOLIGHT OFF"
+			custom_gcode_off="OCTOLIGHT OFF",
+			custom_gcode_delay_off="OCTOLIGHT DELAY OFF"
 		)
 
 	def get_template_configs(self):
@@ -154,12 +155,12 @@ class OctoLightPlugin(
 		)
 
 	def light_on(self):
-		if not self.light_state or self._settings.get(["toggle_output"]):
+		if not self.light_state:
 			self.light_toggle()
 
 	def light_off(self):
 		self.stopTimer()
-		if self.light_state or self._settings.get(["toggle_output"]):
+		if self.light_state:
 			self.light_toggle()
 
 
@@ -295,6 +296,9 @@ class OctoLightPlugin(
 		elif cmd == self._settings.get(["custom_gcode_off"]):
 			self._logger.debug("OctoLight Received custom code: off")
 			self.light_off()
+		if cmd == self._settings.get(["custom_gcode_delay_off"]):
+			self._logger.debug("OctoLight Received custom code: delay off")
+			self.delayed_off_setup(self._settings.get(["delay_off"]))
 		
 		return
 	

@@ -27,7 +27,7 @@ Currently, you can configure settings:
 
 - `Button Press delay (ms)`: This sets a time out for how long a button press is, this is only used if `Light is a button` is enabled.
 	- Default value: 200
-	- Note: This value is in micro seconds
+	- Note: This value is in micro seconds.
 
 - `Delay Light Off (mins)`: This sets a time out for when the light will automatically turn its self-off in an event
 	- Default value: 5
@@ -42,7 +42,7 @@ Currently, you can configure settings:
 	- If this option is disabled, then the custom GCODE bellow this option will not function.
 
 - `Setup Custom GCODE`: This allows you to select what you would like the light to do when a set GCODE command is sent to the printer
-	- Default is 'OCTOLIGHT ON' and 'OCTOLIGHT OFF' for on and off respectively.
+	- Default is 'OCTOLIGHT ON', 'OCTOLIGHT OFF' and 'OCTOLIGHT DELAY OFF' for on, off and on with a delayed turn off respectively.
 	- These commands can be any command the user enters, these could be event commands for the printer (e.g.: M600) or custom commands.
 
 
