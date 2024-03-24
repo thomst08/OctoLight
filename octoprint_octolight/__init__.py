@@ -6,6 +6,7 @@ import math
 import flask
 import octoprint.plugin
 import RPi.GPIO as GPIO
+from flask_babel import gettext
 from octoprint.access.permissions import Permissions
 from octoprint.events import Events
 from octoprint.util import RepeatedTimer
