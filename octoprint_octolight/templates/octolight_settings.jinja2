@@ -5,6 +5,14 @@
 		<div class="controls">
 			<input id="light_pin-input" type="number" min="1" max="40" class="input-small"
 				data-bind="value: settings.plugins.octolight.light_pin">
+			<!-- ko if: settings.plugins.octolight.bcm_mode -->
+			<span class="help-inline">
+				BCM Mode active, enter GPIO number
+				<a href="https://pinout.xyz/" target="_blank" class="same-color">
+					<i class="fa fa-info"></i>
+				</a>
+			</span>
+			<!-- /ko -->
 		</div>
 
 		<div class="controls">
@@ -35,16 +43,16 @@
 		<h4>Events</h4>
 
 		{% for events in plugin_octolight_monitored_events -%}
-			<label class="control-label" for='{{ events.settingName }}'>{{ events.label }}</label>
-			<div class="controls">
-				<select id='{{ events.settingName }}'
-					data-bind="selectedOptions: settings.plugins.octolight.{{ events.settingName }}">
-					{% for options in plugin_octolight_event_options -%}
-						<option value='{{ options.value }}'>{{ options.name }}</option>
-					{% endfor %}
-				</select>
-			</div>
-			<br />
+		<label class="control-label" for='{{ events.settingName }}'>{{ events.label }}</label>
+		<div class="controls">
+			<select id='{{ events.settingName }}'
+				data-bind="selectedOptions: settings.plugins.octolight.{{ events.settingName }}">
+				{% for options in plugin_octolight_event_options -%}
+				<option value='{{ options.value }}'>{{ options.name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<br />
 		{% endfor %}
 
 		<h4>Custom GCode</h4>

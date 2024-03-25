@@ -11,8 +11,9 @@ from octoprint.access.permissions import Permissions
 from octoprint.events import Events
 from octoprint.util import RepeatedTimer
 
-GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
+if(GPIO.getmode() == None):
+	GPIO.setmode(GPIO.BOARD)
 
 
 class OctoLightPlugin(
@@ -50,6 +51,8 @@ class OctoLightPlugin(
 			toggle_output=False,
 			toggle_delay=200,
 			delay_off=5,
+
+			bcm_mode=GPIO.getmode() == GPIO.BCM,
 
 			#Setup the default value for each event
 			event_printer_start=self.event_options[0]["value"],
