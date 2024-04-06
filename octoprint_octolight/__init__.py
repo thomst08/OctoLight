@@ -115,9 +115,9 @@ class OctoLightPlugin(
 		else:
 			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
 
-		# Process the "OctoPrint Start" event here. Because this events happens
-		# before on_after_startup() is called and the GPIO isn't set up yet,
-		# it cannot be processed by on_event()
+		# Process the "OctoPrint Start" event here. Because this event happens
+		# before on_after_startup() is called, the GPIO won't be set up yet
+		# and thus it simply won't work if processed by on_event().
 		self.trigger_event(self._settings.get(["event_octoprint_start"])[0])
 
 		self._plugin_manager.send_plugin_message(
