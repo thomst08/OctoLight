@@ -38,7 +38,9 @@ class OctoLightPlugin(
 		{"label": "Printer Failed:", "settingName": "event_printer_failed"},
 		{"label": "Printer Cancelled:", "settingName": "event_printer_cancelled"},
 		{"label": "Printer Paused:", "settingName": "event_printer_paused"},
-		{"label": "Printer Error:", "settingName": "event_printer_error"}
+		{"label": "Printer Error:", "settingName": "event_printer_error"},
+		{"label": "OctoPrint Start:", "settingName": "event_octoprint_start"},
+		{"label": "OctoPrint Stop:", "settingName": "event_octoprint_stop"},
 	]
 
 	light_state = False
@@ -61,6 +63,8 @@ class OctoLightPlugin(
 			event_printer_cancelled=self.event_options[0]["value"],
 			event_printer_paused=self.event_options[0]["value"],
 			event_printer_error=self.event_options[0]["value"],
+			event_octoprint_start=self.event_options[0]["value"],
+			event_octoprint_stop=self.event_options[0]["value"],
 
 			#Setup the default vales for custom GCode
 			enable_custom_gcode=False,
@@ -111,18 +115,10 @@ class OctoLightPlugin(
 		else:
 			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
 
-		#Because light is set to off on startup we don't need to retrieve the current state
-		"""
-		r = self.light_state = GPIO.input(int(self._settings.get(["light_pin"])))
-        if r==1:
-                self.light_state = False
-        else:
-                self.light_state = True
-
-        self._logger.info("After Startup. Light state: {}".format(
-                self.light_state
-        ))
-        """
+		# Process the "OctoPrint Start" event here. Because this event happens
+		# before on_after_startup() is called, the GPIO won't be set up yet
+		# and thus it simply won't work if processed by on_event().
+		self.trigger_event(self._settings.get(["event_octoprint_start"])[0])
 
 		self._plugin_manager.send_plugin_message(
 			self._identifier, dict(isLightOn=self.light_state)
@@ -272,6 +268,10 @@ class OctoLightPlugin(
 			return
 		if event == Events.ERROR:
 			self.trigger_event(self._settings.get(["event_printer_error"])[0])
+			return
+		# Events.STARTUP is handled in on_after_startup()
+		if event == Events.SHUTDOWN:
+			self.trigger_event(self._settings.get(["event_octoprint_stop"])[0])
 			return
 
 	#Handles the event that should happen
