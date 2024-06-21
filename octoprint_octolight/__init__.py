@@ -26,12 +26,15 @@ class OctoLightPlugin(
 	octoprint.plugin.RestartNeedingPlugin
 ):
 
+	# Event types
 	event_options = [
 		{"name": "Nothing", "value": "na"},
 		{"name": "Turn Light On", "value": "on"},
 		{"name": "Turn Light Off", "value": "off"},
 		{"name": "Delay Turn Light Off", "value": "delay"}
 	]
+
+	# Monitor events
 	monitored_events = [
 		{"label": "Printer Start:", "settingName": "event_printer_start"},
 		{"label": "Printer Done:", "settingName": "event_printer_done"},
@@ -43,9 +46,20 @@ class OctoLightPlugin(
 		{"label": "OctoPrint Stop:", "settingName": "event_octoprint_stop"},
 	]
 
-	light_state = False
-	delayed_state = None
+	#Default/Variables for plugin to function
+	light_state=False
+	delayed_state=None
+	light_pin=13
+	inverted_output=False
+	delayed_off_time=5
+	button_pin=15
+	button_enabled=False
+	button_high=False
+	toggle_output=False
+	toggle_delay=200
 
+
+	# Function to setup default settings
 	def get_settings_defaults(self):
 		return dict(
 			light_pin=13,
@@ -53,6 +67,10 @@ class OctoLightPlugin(
 			toggle_output=False,
 			toggle_delay=200,
 			delay_off=5,
+
+			button_pin=15,
+			button_enabled=False,
+			button_high=False,
 
 			bcm_mode=GPIO.getmode() == GPIO.BCM,
 
@@ -93,27 +111,59 @@ class OctoLightPlugin(
 			"event_options": self.event_options,
 			"monitored_events": self.monitored_events
 		}
+	
+	# Handles the resettinng of previous settings and reloads plugin settings
+	def reset_and_reload(self):
+		self._logger.debug("OctoLight Settings updated, resetting")
+		self.light_off()
+		GPIO.cleanup(self.light_pin)
+		if self.button_enabled:
+			GPIO.remove_event_detect(self.button_pin)
+			GPIO.cleanup(self.button_pin)
 
+		self.on_after_startup()
+
+	# Handles the setup of the plugin and setups up pins
 	def on_after_startup(self):
+		# Load all the settings into plugin variables
 		self.light_state = False
-		
+		self.light_pin = int(self._settings.get(["light_pin"]))
+		self.inverted_output = bool(self._settings.get(["inverted_output"]))
+		self.delayed_off_time = int(self._settings.get(["delay_off"]))
+
+		self.toggle_output = bool(self._settings.get(["toggle_output"]))
+		self.toggle_delay = float(self._settings.get(["toggle_delay"]))
+
+		self.button_pin = int(self._settings.get(["button_pin"]))
+		self.button_enabled = bool(self._settings.get(["button_enabled"]))
+		self.button_high = bool(self._settings.get(["button_high"]))
+
+		# Debugging settings
 		self._logger.debug ("--------------------------------------------")
 		self._logger.debug ("OctoLight started, listening for GET request")
 		self._logger.debug (
 			"Light pin: {}, inverted_input: {}, Delay Time: {}".format(
-				self._settings.get(["light_pin"]),
-				self._settings.get(["inverted_output"]),
-				self._settings.get(["delay_off"])
+				self.light_state,
+				self.inverted_output,
+				self.delayed_off_time
+			)
+		)
+		self._logger.debug ("OctoLight button")
+		self._logger.debug (
+			"button_pin: {}, button_enabled: {}, button_high: {}".format(
+				self.button_pin,
+				self.button_enabled,
+				self.button_high
 			)
 		)
 		self._logger.debug ("--------------------------------------------")
 
 		# Setting the default state of pin
-		GPIO.setup(int(self._settings.get(["light_pin"])), GPIO.OUT)
-		if bool(self._settings.get(["inverted_output"])):
-			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.HIGH)
+		GPIO.setup(self.light_pin, GPIO.OUT)
+		if self.inverted_output:
+			GPIO.output(self.light_pin, GPIO.HIGH)
 		else:
-			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
+			GPIO.output(self.light_pin, GPIO.LOW)
 
 		# Process the "OctoPrint Start" event here. Because this event happens
 		# before on_after_startup() is called, the GPIO won't be set up yet
@@ -123,30 +173,61 @@ class OctoLightPlugin(
 		self._plugin_manager.send_plugin_message(
 			self._identifier, dict(isLightOn=self.light_state)
 		)
+		self.setup_button()
+
+
+	# Handles the setup of a button if enabled
+	def setup_button(self):
+		if self.button_enabled:
+			self._logger.debug("Button Enabled")
+
+			# Check if the pin is in a high or a low state and sets up to detect the button press
+			if self.button_high:
+				GPIO.setup(self.button_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+				gpio_event=GPIO.RISING
+			else:
+				GPIO.setup(self.button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+				gpio_event=GPIO.FALLING
+			
+			# Remove any detections and then setup a function to detect events
+			GPIO.remove_event_detect(self.button_pin)
+			GPIO.add_event_detect(
+				self.button_pin,
+				gpio_event,
+				callback=self.button_press_trigger,
+				bouncetime=200
+			)
+		else:
+			self._logger.debug("Button Disabled")
+
+
+	def button_press_trigger(self, _):
+		self.light_toggle()
+
 
 	def light_button_toggle(self):
-		GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
+		GPIO.output(self.light_pin, GPIO.LOW)
 		self.delayed_toggle.cancel()
 		self.delayed_toggle = None
 
 
 	def light_toggle(self):
 		# Sets the GPIO every time, if user changed it in the settings.
-		GPIO.setup(int(self._settings.get(["light_pin"])), GPIO.OUT)
+		GPIO.setup(self.light_pin, GPIO.OUT)
 
 		self.light_state = not self.light_state
 		self.stopTimer()
 
 		# Handles a toggle on and off as a button press
-		if self._settings.get(["toggle_output"]):
-			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.HIGH)
-			self.delayed_toggle = RepeatedTimer(float(self._settings.get(["toggle_delay"])) / 1000, self.light_button_toggle)
+		if self.toggle_output:
+			GPIO.output(self.light_pin, GPIO.HIGH)
+			self.delayed_toggle = RepeatedTimer(self.toggle_delay / 1000, self.light_button_toggle)
 			self.delayed_toggle.start()
 		# Sets the light state depending on the inverted output setting (XOR)
-		elif self.light_state ^ self._settings.get(["inverted_output"]):
-			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.HIGH)
+		elif self.light_state ^ self.inverted_output:
+			GPIO.output(self.light_pin, GPIO.HIGH)
 		else:
-			GPIO.output(int(self._settings.get(["light_pin"])), GPIO.LOW)
+			GPIO.output(self.light_pin, GPIO.LOW)
 
 		self._logger.debug ("Got request. Light state: {}".format(self.light_state))
 
@@ -167,7 +248,7 @@ class OctoLightPlugin(
 	@Permissions.CONTROL.require(403)
 	def on_api_get(self, request):
 		action = request.args.get("action", default="toggle", type=str)
-		delay = request.args.get("delay", default=self._settings.get(["delay_off"]), type=int)
+		delay = request.args.get("delay", default=self.delayed_off_time, type=int)
 
 		if action == "toggle":
 			self.light_toggle()
@@ -245,6 +326,7 @@ class OctoLightPlugin(
 		self.startTimer(mins)
 		return
 
+	# Handles events form OctoPrint
 	def on_event(self, event, payload):
 		if event == Events.CLIENT_OPENED:
 			self._plugin_manager.send_plugin_message(
@@ -273,6 +355,8 @@ class OctoLightPlugin(
 		if event == Events.SHUTDOWN:
 			self.trigger_event(self._settings.get(["event_octoprint_stop"])[0])
 			return
+		if event == Events.SETTINGS_UPDATED:
+			self.reset_and_reload()
 
 	#Handles the event that should happen
 	def trigger_event(self, user_setting):
@@ -281,7 +365,7 @@ class OctoLightPlugin(
 		elif user_setting == "off":
 			self.light_off()
 		elif user_setting == "delay":
-			self.delayed_off_setup(self._settings.get(["delay_off"]))
+			self.delayed_off_setup(self.delayed_off_time)
 		else:
 			self._logger.warning(
 				"Unknown event trigger, received: {}".format(user_setting)
@@ -302,10 +386,10 @@ class OctoLightPlugin(
 			self.light_off()
 		if cmd == self._settings.get(["custom_gcode_delay_off"]):
 			self._logger.debug("OctoLight Received custom code: delay off")
-			self.delayed_off_setup(self._settings.get(["delay_off"]))
+			self.delayed_off_setup(self.delayed_off_time)
 		
 		return
-	
+
 
 	def get_additional_permissions(self, *args, **kwargs):
 		return [
@@ -316,8 +400,8 @@ class OctoLightPlugin(
 					dangerous=True,
 					default_groups=[Permissions.ADMIN_GROUP])
 				]
-	
-	
+
+
 	def get_update_information(self):
 		return dict(
 			octolight=dict(

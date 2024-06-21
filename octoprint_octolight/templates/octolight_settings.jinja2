@@ -1,88 +1,183 @@
 <form class="form-horizontal">
 	<h3>OctoLight settings</h3>
 	<div class="control-group">
-		<label class="control-label">{{ _('Light PIN') }}</label>
-		<div class="controls">
-			<input id="light_pin-input" type="number" min="1" max="40" class="input-small"
-				data-bind="value: settings.plugins.octolight.light_pin">
-			<!-- ko if: settings.plugins.octolight.bcm_mode -->
-			<span class="help-inline">
-				BCM Mode active, enter GPIO number
-				<a href="https://pinout.xyz/" target="_blank" class="same-color">
-					<i class="fa fa-info"></i>
+
+		<ul class="nav nav-pills" id="octolight-settings-tab">
+			<li class="active">
+				<a href="#tab-octolight-main" data-toggle="tab">
+					Light Settings
 				</a>
-			</span>
-			<!-- /ko -->
-		</div>
+			</li>
+			<li>
+				<a href="#tab-octolight-button" data-toggle="tab">
+					External Button Settings
+				</a>
+			</li>
+			<li>
+				<a href="#tab-octolight-events" data-toggle="tab">
+					Event Settings
+				</a>
+			</li>
+			<li>
+				<a href="#tab-octolight-gcode" data-toggle="tab">
+					Custom GCODE Settings
+				</a>
+			</li>
+		</ul>
 
-		<div class="controls">
-			<label class="checkbox">
-				<input type="checkbox" data-bind="checked: settings.plugins.octolight.inverted_output">
-				{{ _('Inverted output') }}
-			</label>
-		</div>
-		<div class="controls">
-			<label class="checkbox">
-				<input type="checkbox" data-bind="checked: settings.plugins.octolight.toggle_output">
-				{{ _('Light is a button') }}
-			</label>
-		</div>
-		<label class="control-label">{{ _('Button Press delay (ms)') }}</label>
-		<div style="margin-bottom: 8px;" class="controls">
-			<input id="toggle_delay-input" type="number" min="50" max="5000" class="input-small"
-				data-bind="value: settings.plugins.octolight.toggle_delay">
-		</div>
+		<div class="tab-content">
+			<div id="tab-octolight-main" class="tab-pane active">
+				<div class="control-group" title="This is the pin ID used to turn the light on and off">
+					<label class="control-label">{{ _('Light PIN') }}</label>
+					<div class="controls">
+						<input id="light_pin-input" type="number" min="1" max="40" class="input-small"
+							data-bind="value: settings.plugins.octolight.light_pin">
+						<!-- ko if: settings.plugins.octolight.bcm_mode -->
+						<span class="help-inline">
+							BCM Mode active, enter GPIO number
+							<a href="https://pinout.xyz/" target="_blank" class="same-color">
+								<i class="fa fa-info"></i>
+							</a>
+						</span>
+						<!-- /ko -->
+					</div>
+				</div>
 
-		<label class="control-label">{{ _('Delay Light Off (mins)') }}</label>
-		<div class="controls">
-			<input id="delay_off-input" type="number" min="1" max="60" class="input-small"
-				data-bind="value: settings.plugins.octolight.delay_off">
-		</div>
+				<div class="control-group"
+					title="This reverses the pins output, for example, this will set the light pin to high when the light's state is off">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.octolight.inverted_output">
+							{{ _('Inverted output') }}
+						</label>
+					</div>
+				</div>
 
-		<br />
-		<h4>Events</h4>
+				<br />
+				<h4>Treat light pin as button settings</h4>
+				<div class="control-group"
+					title="This treats the light pin as a button, this will trigger the pin state to turn on and off">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.octolight.toggle_output">
+							{{ _('Treat light pin as a button') }}
+						</label>
+					</div>
+				</div>
 
-		{% for events in plugin_octolight_monitored_events -%}
-		<label class="control-label" for='{{ events.settingName }}'>{{ events.label }}</label>
-		<div class="controls">
-			<select id='{{ events.settingName }}'
-				data-bind="selectedOptions: settings.plugins.octolight.{{ events.settingName }}">
-				{% for options in plugin_octolight_event_options -%}
-				<option value='{{ options.value }}'>{{ options.name }}</option>
+				<div class="control-group"
+					title="This allows for the configuring of how long the pin is turned on and off, this is only used when 'Treat light pin as a button' is enabled">
+					<label class="control-label">{{ _('Button Press delay (ms)') }}</label>
+					<div style="margin-bottom: 8px;" class="controls">
+						<input id="toggle_delay-input" type="number" min="50" max="5000" class="input-small"
+							data-bind="value: settings.plugins.octolight.toggle_delay">
+					</div>
+				</div>
+
+				<br />
+				<h4>Light delay settings</h4>
+				<div class="control-group"
+					title="This allows for how long the light will be on for before turning off automatically, this is only used with 'Events' or 'Custom GCODE'">
+					<label class="control-label">{{ _('Delay Light Off (mins)') }}</label>
+					<div class="controls">
+						<input id="delay_off-input" type="number" min="1" max="60" class="input-small"
+							data-bind="value: settings.plugins.octolight.delay_off">
+					</div>
+				</div>
+			</div>
+
+			<div id="tab-octolight-button" class="tab-pane">
+				<div class="control-group"
+					title="Allows the enabling of an external button, must be enabled to allow for a external button to work">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.octolight.button_enabled">
+							{{ _('Enable External button') }}
+						</label>
+					</div>
+				</div>
+
+				<div class="control-group"
+					title="This is the pin ID used to register a button press, this will then trigger the light to turn on or off">
+					<label class="control-label">{{ _('Button PIN') }}</label>
+					<div class="controls">
+						<input id="button_pin-input" type="number" min="1" max="40" class="input-small"
+							data-bind="value: settings.plugins.octolight.button_pin">
+						<!-- ko if: settings.plugins.octolight.bcm_mode -->
+						<span class="help-inline">
+							BCM Mode active, enter GPIO number
+							<a href="https://pinout.xyz/" target="_blank" class="same-color">
+								<i class="fa fa-info"></i>
+							</a>
+						</span>
+						<!-- /ko -->
+					</div>
+				</div>
+
+				<div class="control-group"
+					title="This is used to indercate if the button is connected to the ground pin or the v5 pin, enable this if it is the v5 pin. This will set the pin to detect when the pin's state goes 'high'">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.octolight.button_high">
+							{{ _('Button pin is connected to v5') }}
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<div id="tab-octolight-events" class="tab-pane">
+				{% for events in plugin_octolight_monitored_events -%}
+				<div class="control-group"
+					title="Used to change the lights state with OctoPrint triggers a '{{ events.settingName }}' event">
+					<label class="control-label" for='{{ events.settingName }}'>{{ events.label }}</label>
+					<div class="controls">
+						<select id='{{ events.settingName }}'
+							data-bind="selectedOptions: settings.plugins.octolight.{{ events.settingName }}">
+							{% for options in plugin_octolight_event_options -%}
+							<option value='{{ options.value }}'>{{ options.name }}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</div>
 				{% endfor %}
-			</select>
-		</div>
-		<br />
-		{% endfor %}
+			</div>
 
-		<h4>Custom GCode</h4>
-		<div class="controls">
-			<label class="checkbox">
-				<input type="checkbox" data-bind="checked: settings.plugins.octolight.enable_custom_gcode">
-				{{ _('Enable Custom GCODE Detection') }}
-			</label>
-		</div>
-		<br />
+			<div id="tab-octolight-gcode" class="tab-pane">
+				<div class="control-group"
+					title="Enables the use of reading GCODE to change the state of the light, this must be enabled to allow the light to change state from GCODE">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.octolight.enable_custom_gcode">
+							{{ _('Enable Custom GCODE Detection') }}
+						</label>
+					</div>
+				</div>
 
-		<label class="control-label">{{ _('GCODE for Light On') }}</label>
-		<div class="controls">
-			<input id="custom_gcode_on-input" type="text" maxlength="100"
-				data-bind="value: settings.plugins.octolight.custom_gcode_on">
-		</div>
-		<br />
+				<div class="control-group" title="This is the GCODE used to turn on the light">
+					<label class="control-label">{{ _('GCODE for Light On') }}</label>
+					<div class="controls">
+						<input id="custom_gcode_on-input" type="text" maxlength="100"
+							data-bind="value: settings.plugins.octolight.custom_gcode_on">
+					</div>
+				</div>
 
-		<label class="control-label">{{ _('GCODE for Light Off') }}</label>
-		<div class="controls">
-			<input id="custom_gcode_off-input" type="text" maxlength="100"
-				data-bind="value: settings.plugins.octolight.custom_gcode_off">
-		</div>
-		<br />
+				<div class="control-group" title="This is the GCODE used to turn off the light">
+					<label class="control-label">{{ _('GCODE for Light Off') }}</label>
+					<div class="controls">
+						<input id="custom_gcode_off-input" type="text" maxlength="100"
+							data-bind="value: settings.plugins.octolight.custom_gcode_off">
+					</div>
+				</div>
 
-		<label class="control-label">{{ _('GCODE for Delayed Off') }}</label>
-		<div class="controls">
-			<input id="custom_gcode_off-input" type="text" maxlength="100"
-				data-bind="value: settings.plugins.octolight.custom_gcode_delay_off">
+				<div class="control-group"
+					title="This is the GCODE used to set the light to turn on then off after the delay time">
+					<label class="control-label">{{ _('GCODE for Delayed Off') }}</label>
+					<div class="controls">
+						<input id="custom_gcode_off-input" type="text" maxlength="100"
+							data-bind="value: settings.plugins.octolight.custom_gcode_delay_off">
+					</div>
+				</div>
+			</div>
 		</div>
-		<br />
 	</div>
 </form>
