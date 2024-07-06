@@ -244,40 +244,34 @@ class OctoLightPlugin(
 		if self.light_state:
 			self.light_toggle()
 
+	def get_api_commands(self):
+		return dict(
+			toggle=[],
+			turnOn=[],
+			turnOff=[],
+			delayOff=["delay"],
+			delayOffStop=[]
+			)
 
-	@Permissions.CONTROL.require(403)
+	@Permissions.STATUS.require(403)
 	def on_api_get(self, request):
-		action = request.args.get("action", default="toggle", type=str)
-		delay = request.args.get("delay", default=self.delayed_off_time, type=int)
+		return flask.jsonify(state=self.light_state)
 
-		if action == "toggle":
+	@Permissions.PLUGIN_OCTOLIGHT_CONTROL.require(403)
+	def on_api_command(self, command, data):
+		if command == "toggle":
 			self.light_toggle()
-
-			return flask.jsonify(state=self.light_state)
-
-		elif action == "getState":
-			return flask.jsonify(state=self.light_state)
-
-		elif action == "turnOn":
+		elif command == "turnOn":
 			self.light_on()
-			return flask.jsonify(state=self.light_state)
-
-		elif action == "turnOff":
+		elif command == "turnOff":
 			self.light_off()
-			return flask.jsonify(state=self.light_state)
-
 		#Turn on light and setup timer
-		elif action == "delayOff":
-			self.delayed_off_setup(delay)
-			return flask.jsonify(state=self.light_state)
-
+		elif command == "delayOff":
+			if "delay" in data:
+				self.delayed_off_setup(data["delay"])
 		#Turn off off timer and light
-		elif action == "delayOffStop":
+		elif command == "delayOffStop":
 			self.delayed_off()
-			return flask.jsonify(state=self.light_state)
-
-		else:
-			return flask.jsonify(error="action not recognized")
 
 	#This stops the current timer, this does not control the light
 	def stopTimer(self):

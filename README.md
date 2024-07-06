@@ -80,21 +80,25 @@ Currently, you can configure settings:
 
 
 ## API
-Base API URL: `GET http://YOUR_OCTOPRINT_SERVER/api/plugin/octolight?action=ACTION_NAME`
+Base API URL: `http://YOUR_OCTOPRINT_SERVER/api/plugin/octolight`
 
-This API always returns updated light state in JSON: `{state: true}` <br />
-Any API call will require a API key with the "Control" permission.  Without this, you will receive a 403 error.
+This API returns light state in JSON: `{state: true}` <br />
+A GET API call will require a API key with the "STATUS" permission.  Without this, you will receive a 403 error.
 
-_(if the action parameter not given, the action toggle will be used by default)_
+A POST API call will require a API key with the "PLUGIN_OCTOLIGHT_CONTROL" permission.  Without this, you will receive a 403 error.
+
 #### Actions
-- **toggle** (default action): Toggle light switch on/off.
+- **toggle**: Toggle light switch on/off.
 - **turnOn**: Turn on light.
 - **turnOff**: Turn off light.
-- **getState**: Get current light switch state.
-- **delayOff**: Turn on light and setup timer to shutoff light after delay time, note, `&delay=VALUE` can be added to the URL to override the default time value.
+- **delayOff**: Turn on light and setup timer to shutoff light after delay time, note, `{ "delay": VALUE }` should be added to the body.
 - **delayOffStop**: Testing for shutting off timer and light.
 
+#### Examples
 
+Toggle light: `curl -H "Content-Type: application/json" -H "X-Api-Key: YOUR_OCTOPRINT_API_KEY" -X POST -d '{"command": "toggle"}' http://YOUR_OCTOPRINT_SERVER/api/plugin/octolight`
+
+Delay off after 3 min: `curl -H "Content-Type: application/json" -H "X-Api-Key: YOUR_OCTOPRINT_API_KEY" -X POST -d '{"command": "delayOff", "delay": 3}' http://YOUR_OCTOPRINT_SERVER/api/plugin/octolight`
 
 ## Thank you list
 Thank you goes out to the following people:

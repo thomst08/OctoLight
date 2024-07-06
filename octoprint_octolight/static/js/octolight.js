@@ -28,7 +28,19 @@ $(function () {
                     self.light_indicator.removeClass("on").addClass("off");
                 }
             });
-        }
+        };
+
+        self.light_toggle = function() {
+           $.ajax({
+                url: API_BASEURL + "plugin/octolight",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "toggle"
+                }),
+                contentType: "application/json; charset=UTF-8"
+            })
+        };
     }
 
     OCTOPRINT_VIEWMODELS.push({
