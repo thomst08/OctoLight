@@ -30,16 +30,8 @@ $(function () {
             });
         };
 
-        self.light_toggle = function() {
-           $.ajax({
-                url: API_BASEURL + "plugin/octolight",
-                type: "POST",
-                dataType: "json",
-                data: JSON.stringify({
-                    command: "toggle"
-                }),
-                contentType: "application/json; charset=UTF-8"
-            })
+        self.light_toggle = function () {
+            OctoPrint.simpleApiCommand("octolight", "toggle").done();
         };
     }
 
