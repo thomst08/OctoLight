@@ -246,7 +246,7 @@ class OctoLightPlugin(
 
 
 	# Handle GET requests, return the state of the light
-	@Permissions.STATUS.require(403)
+	@Permissions.PLUGIN_OCTOLIGHT_STATUS.require(403)
 	def on_api_get(self, request):
 		#-------------------
 		# Old actions these will be removed in the future and should not be used.
@@ -283,7 +283,7 @@ class OctoLightPlugin(
 
 	# Handles POST commands, this is used to handle the changing of the lights state
 	# based on the command issued
-	@Permissions.CONTROL.require(403)
+	@Permissions.PLUGIN_OCTOLIGHT_CONTROL.require(403)
 	def on_api_command(self, command, data):
 		if command == "toggle":
 			self.light_toggle()
