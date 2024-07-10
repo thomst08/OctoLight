@@ -28,7 +28,11 @@ $(function () {
                     self.light_indicator.removeClass("on").addClass("off");
                 }
             });
-        }
+        };
+
+        self.light_toggle = function () {
+            OctoPrint.simpleApiCommand("octolight", "toggle").done();
+        };
     }
 
     OCTOPRINT_VIEWMODELS.push({

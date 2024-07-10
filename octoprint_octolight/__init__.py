@@ -221,7 +221,7 @@ class OctoLightPlugin(
 		# Handles a toggle on and off as a button press
 		if self.toggle_output:
 			GPIO.output(self.light_pin, GPIO.HIGH)
-			self.delayed_toggle = RepeatedTimer(self.toggle_delay / 1000, self.light_button_toggle)
+			self.delayed_toggle=RepeatedTimer(self.toggle_delay / 1000, self.light_button_toggle)
 			self.delayed_toggle.start()
 		# Sets the light state depending on the inverted output setting (XOR)
 		elif self.light_state ^ self.inverted_output:
@@ -229,7 +229,7 @@ class OctoLightPlugin(
 		else:
 			GPIO.output(self.light_pin, GPIO.LOW)
 
-		self._logger.debug ("Got request. Light state: {}".format(self.light_state))
+		self._logger.debug("Got request. Light state: {}".format(self.light_state))
 
 		self._plugin_manager.send_plugin_message(
 			self._identifier, dict(isLightOn=self.light_state)
@@ -245,39 +245,69 @@ class OctoLightPlugin(
 			self.light_toggle()
 
 
-	@Permissions.CONTROL.require(403)
+	# Handle GET requests, return the state of the light
+	@Permissions.PLUGIN_OCTOLIGHT_STATUS.require(403)
 	def on_api_get(self, request):
-		action = request.args.get("action", default="toggle", type=str)
+		#-------------------
+		# Old actions these will be removed in the future and should not be used.
+		action = request.args.get("action", default="", type=str)
 		delay = request.args.get("delay", default=self.delayed_off_time, type=int)
+
+		if action != "":
+			self._logger.warning("OctoLight API GET calls to change the light are soon to be removed, please change to the updated POST API calls")
 
 		if action == "toggle":
 			self.light_toggle()
-
-			return flask.jsonify(state=self.light_state)
-
-		elif action == "getState":
-			return flask.jsonify(state=self.light_state)
-
 		elif action == "turnOn":
 			self.light_on()
-			return flask.jsonify(state=self.light_state)
-
 		elif action == "turnOff":
 			self.light_off()
-			return flask.jsonify(state=self.light_state)
-
-		#Turn on light and setup timer
 		elif action == "delayOff":
 			self.delayed_off_setup(delay)
-			return flask.jsonify(state=self.light_state)
-
-		#Turn off off timer and light
 		elif action == "delayOffStop":
 			self.delayed_off()
-			return flask.jsonify(state=self.light_state)
+		# End of old actions
+		#-------------------
 
+		return flask.jsonify(state=self.light_state)
+
+	# Setups up required commands and data for POST request
+	def get_api_commands(self):
+		return dict(
+			toggle=[],
+			turnOn=[],
+			turnOff=[],
+			delayOff=[],	# "delay" is an optional value to send and must be a number greater then 0
+			delayOffStop=[]
+			)
+
+	# Handles POST commands, this is used to handle the changing of the lights state
+	# based on the command issued
+	@Permissions.PLUGIN_OCTOLIGHT_CONTROL.require(403)
+	def on_api_command(self, command, data):
+		if command == "toggle":
+			self.light_toggle()
+		elif command == "turnOn":
+			self.light_on()
+		elif command == "turnOff":
+			self.light_off()
+		#Turn on light and setup timer
+		elif command == "delayOff":
+			if "delay" in data:
+				if not isinstance(data["delay"], int):
+					return flask.make_response("Bad delay value", 400)
+				elif data["delay"] < 0:
+					return flask.make_response("Bad delay value", 400)
+				self.delayed_off_setup(data["delay"])
+			else:
+				self.delayed_off_setup(self.delayed_off_time)
+		#Turn off off timer and light
+		elif command == "delayOffStop":
+			self.delayed_off()
 		else:
-			return flask.jsonify(error="action not recognized")
+			return flask.make_response("Unknown command", 400)
+		return flask.jsonify(state=self.light_state)
+	
 
 	#This stops the current timer, this does not control the light
 	def stopTimer(self):
@@ -396,6 +426,12 @@ class OctoLightPlugin(
 				dict(key="CONTROL",
 					name="Control",
 					description=gettext("Allows switching relays on/off"),
+					roles=["admin"],
+					dangerous=True,
+					default_groups=[Permissions.ADMIN_GROUP]),
+				dict(key="STATUS",
+					name="Status",
+					description=gettext("Allows the viewing of Light status"),
 					roles=["admin"],
 					dangerous=True,
 					default_groups=[Permissions.ADMIN_GROUP])
