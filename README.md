@@ -80,11 +80,14 @@ Currently, you can configure settings:
 
 
 ## API
+
+**Note:** As of version 1.0.1, the API has been updated to be more in line with a RESTFUL standard, instead of functions being changed with a ``GET`` request, the new setup requires a ``POST`` request and the command to be sent in the body.  To keep backwards compatibility with previous API calls, the previous ``GET`` commands can still be used, however, it is recommended to update as these commands will be removed around the end of 2024.  Please reach out if this is an issue or if you need help.  Please have a look at the new API calls below to update.
+
 Base API URL: `http://YOUR_OCTOPRINT_SERVER/api/plugin/octolight`
 
-This API returns light state in JSON for both GET and POST requests: `{state: true}` <br />
-A GET API call will require a API key with the "STATUS" permission.  Without this, you will receive a 403 error. <br />
-A POST API call will require a API key with the "CONTROL" permission.  Without this, you will receive a 403 error.
+This API returns light state in JSON for both ``GET`` and ``POST`` requests: ``{state: true}`` <br />
+- ``GET`` calls will require a API key with the "STATUS" permission.  Without this, you will receive a 403 error. <br />
+- ``POST`` calls will require a API key with the "CONTROL" permission.  Without this, you will receive a 403 error.
 
 #### Actions
 - **toggle**: Toggle light switch on/off.
