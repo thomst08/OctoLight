@@ -110,6 +110,55 @@ This API returns light state in JSON for both ``GET`` and ``POST`` requests: ``{
 - Delay off stop: `curl -H "Content-Type: application/json" -H "X-Api-Key: YOUR_OCTOPRINT_API_KEY" -X POST -d '{"command": "delayOffStop"}' http://YOUR_OCTOPRINT_SERVER/api/plugin/octolight`
 
 
+
+## Issue installing or using the button function
+Past versions of OctoLight heavily relied on the plugin `RPi.GPIO`, this plugin is becoming EOL and doesn't work well with Linux kernel 6.6.0+.  Specifically, it works, however, it cannot attach button functions to GPIO state changes.
+This means OctoLight (as of version 1.0.2), has switched to using `gpiozero` as its main package, this is a wrapper for `RPi.GPIO` and `lgpio`, allowing it to choose what is best for the system.  With the new version of OctoLight, it will try to install `lgpio` if your Python version supports it, but can fall back to `RPi.GPIO` if it does not.  If you have issues with using/installing this plugin, please make sure you have the latest version of OctoPi install (you might need to do a freash install) or reach out for help.
+
+If you are running the latest version of OctoPi (1.1.0 as of the time of writing), you might find that trying to use the button feature of this plugin causes a crash. Checking the error log, you might find the following error.
+```
+GPIO.add_event_detect(
+	RuntimeError: Failed to add edge detection
+```
+This is an issue caused by `RPi.GPIO` and why the plugin needs to switch. `lgpio` will solve this issue, but you might need to tweak the system to correct this issue. This can be done in two ways.
+- Format the system and install a nightly build of OctoPi.  The new nightly builds have a fix for this but it is not yet in the latest stable build.
+- Manually correct the system. This is done with the following.  This is the fix that is introduced in the nightly builds.
+	1. SSH into your OctoPi, (This can be different on each platform, but the command generally is ``ssh pi@{ip of pi}``, password by default is ``raspberry``)
+	2. Run the following command ``sudo nano /etc/systemd/system/octoprint.service``
+	3. Add the following to the file under ``[Service]`` section of the file.
+
+	```
+	Environment="LG_WD=/tmp"
+	```
+
+	The file should look something like this...
+	```
+	[Unit]
+	Description=The snappy web interface for your 3D printer
+	After=network.online.target
+	Wants=network.online.target
+
+	[Service]
+	Environment="HOST=127.0.0.1"
+	Environment="PORT=5000"
+	Environment="REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt"
+	Environment="LG_WD=/tmp"
+	Type=simple
+	User=1000
+	ExecStart=/opt/octopi/oprint/bin/octoprint serve --host=${HOST} --port=${PORT}
+
+	[Install]
+	WantedBy=multi-user.target
+	```
+
+	4. Once done, hold down control and press x
+	5. Y to save and press enter than enter again.
+	6. From this point, you are done, but type ``sudo reboot`` and this will restart the Pi
+
+Either of these methods should correct the issue. If not, try uninstalling the plugin and reinstalling OctoLight after trying these fixes, please reach out if you need help beyond this.  Older systems might have more issues going forward, doing a freash install could help prevent issues in the future.
+
+
+
 ## Thank you list
 Thank you goes out to the following people:
 - [@gigibu5]( https://github.com/gigibu5 ) - Creator of Octolight

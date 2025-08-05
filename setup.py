@@ -14,7 +14,7 @@ plugin_package = "octoprint_octolight"
 plugin_name = "OctoLight"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "1.0.1"
+plugin_version = "1.0.2"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
@@ -32,9 +32,7 @@ plugin_url = "https://github.com/thomst08/OctoLight"
 # The plugin's license. Can be overwritten within OctoPrint's internal data via __plugin_license__ in the plugin module
 plugin_license = "AGPLv3"
 
-# Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["RPi.GPIO", "flask", "flask_babel"]
-
+plugin_requires = ["gpiozero<=1.6.2; python_version <= '3.7'", "gpiozero; python_version >= '3.8'", "lgpio; python_version >= '3.10'", "RPi.GPIO; python_version < '3.14'", "flask", "flask_babel"]
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
 ### --------------------------------------------------------------------------------------------------------------------
