@@ -157,6 +157,28 @@ This is an issue caused by `RPi.GPIO` and why the plugin needs to switch. `lgpio
 
 Either of these methods should correct the issue. If not, try uninstalling the plugin and reinstalling OctoLight after trying these fixes, please reach out if you need help beyond this.  Older systems might have more issues going forward, doing a freash install could help prevent issues in the future.
 
+### Other steps
+
+When installing other plugins, a plugin can force a specific version of a library to be installed.  This can cause issues with OctoLight.
+In order to check for issues, you can query the list of libraries installed using the following command.  Note: You will need to SSH into OctoPrint Server to check.
+```
+./oprint/bin/pip list
+```
+This will print out all the libraries installed, check that gpiozero and lgpio are on the latest version in order to avoid conflicts.  You can force the plugins to update with the following commands. Note: This can cause issues with other plugins, so note what plugins you have and their versions before making changes.
+
+```
+./oprint/bin/pip install --upgrade --force-reinstall --no-cache-dir gpiozero
+./oprint/bin/pip install --upgrade --force-reinstall --no-cache-dir lgpio
+```
+
+If you need to install a specific version of a library, you can do it with the following command.
+```
+./oprint/bin/pip install --upgrade --force-reinstall --no-cache-dir packagename==1.2.3
+```
+
+Always reboot the system or OctoPrint to make sure the libraries are reloaded.  This can be done with `sudo reboot`
+
+
 
 
 ## Thank you list
