@@ -51,6 +51,8 @@ class OctoLightPlugin(
 	button_pin=15
 	button_enabled=False
 	button_high=False
+	button_momentary=True
+	button_on_if_pressed=True
 	toggle_output=False
 	toggle_delay=200
 
@@ -71,6 +73,8 @@ class OctoLightPlugin(
 			button_pin=15,
 			button_enabled=False,
 			button_high=False,
+			button_momentary=True,
+			button_on_if_pressed=True,
 
 			#Setup the default value for each event
 			event_printer_start=self.event_options[0]["value"],
@@ -86,7 +90,8 @@ class OctoLightPlugin(
 			enable_custom_gcode=False,
 			custom_gcode_on="OCTOLIGHT ON",
 			custom_gcode_off="OCTOLIGHT OFF",
-			custom_gcode_delay_off="OCTOLIGHT DELAY OFF"
+			custom_gcode_delay_off="OCTOLIGHT DELAY OFF",
+			custom_gcode_toggle="OCTOLIGHT TOGGLE"
 		)
 
 	def get_template_configs(self):
@@ -138,6 +143,8 @@ class OctoLightPlugin(
 		self.button_pin = int(self._settings.get(["button_pin"]))
 		self.button_enabled = bool(self._settings.get(["button_enabled"]))
 		self.button_high = bool(self._settings.get(["button_high"]))
+		self.button_momentary = bool(self._settings.get(["button_momentary"]))
+		self.button_on_if_pressed = bool(self._settings.get(["button_on_if_pressed"]))
 
 		# Debugging settings
 		self._logger.debug ("--------------------------------------------")
@@ -185,12 +192,37 @@ class OctoLightPlugin(
 
 			self.button = GPIO.Button(pin=self.get_gpio_pin(self.button_pin), pull_up=not(self.button_high), bounce_time=0.05)
 			self.button.when_pressed = self.button_press_trigger
+			if not self.button_momentary:
+				self.button.when_released = self.button_release_trigger
+				if self.button_on_if_pressed:
+					if self.button.is_pressed:
+						self.light_on()
+					else:
+						self.light_off()
+				else:
+					if self.button.is_pressed:
+						self.light_off()
+					else:
+						self.light_on()
 		else:
 			self._logger.debug("Button Disabled")
 
 
 	def button_press_trigger(self, _):
-		self.light_toggle()
+		if self.button_momentary:
+			self.light_toggle()
+		else:
+			if self.button_on_if_pressed:
+				self.light_on()
+			else:
+				self.light_off()
+
+
+	def button_release_trigger(self, _):
+		if self.button_on_if_pressed:
+			self.light_off()
+		else:
+			self.light_on()
 
 
 	def light_button_toggle(self):
@@ -380,13 +412,20 @@ class OctoLightPlugin(
 		if cmd == self._settings.get(["custom_gcode_on"]):
 			self._logger.debug("OctoLight Received custom code: on")
 			self.light_on()
+			return None,
 		elif cmd == self._settings.get(["custom_gcode_off"]):
 			self._logger.debug("OctoLight Received custom code: off")
 			self.light_off()
-		if cmd == self._settings.get(["custom_gcode_delay_off"]):
+			return None,
+		elif cmd == self._settings.get(["custom_gcode_toggle"]):
+			self._logger.debug("OctoLight Received custom code: toggle")
+			self.light_toggle()
+			return None,
+		elif cmd == self._settings.get(["custom_gcode_delay_off"]):
 			self._logger.debug("OctoLight Received custom code: delay off")
 			self.delayed_off_setup(self.delayed_off_time)
-		
+			return None,
+	
 		return
 
 
