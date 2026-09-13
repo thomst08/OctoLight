@@ -107,6 +107,26 @@
 						</label>
 					</div>
 				</div>
+
+				<div class="control-group"
+					title="Check if the button is a momentary push button and light should change on every press. Uncheck if light should turn on/off while the button is held or released.">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.octolight.button_momentary">
+							{{ _('Button is momentary switch') }}
+						</label>
+					</div>
+				</div>
+
+				<div class="control-group"
+					title="If a toggle switch is used, determines whether an on state of the switch corresponds to lights on or vice-versa.">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.octolight.button_on_if_pressed">
+							{{ _('Light is on while switch is on') }}
+						</label>
+					</div>
+				</div>
 			</div>
 
 			<div id="tab-octolight-events" class="tab-pane">
