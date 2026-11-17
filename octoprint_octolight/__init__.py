@@ -22,6 +22,12 @@ class OctoLightPlugin(
 	octoprint.plugin.RestartNeedingPlugin
 ):
 
+	def is_api_protected(self):
+		return True
+
+	def is_template_autoescaped(self):
+		return True
+
 	# Event types
 	event_options = [
 		{"name": "Nothing", "value": "na"},
