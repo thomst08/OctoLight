@@ -1,0 +1,49 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoLight"
+version = "1.0.3"
+description = "A simple plugin to toggle a GPIO pin on a RPi. This can be toggled through a button, printer events or custom GCODE."
+authors = [
+    { name = "Steven Thomson", email = "thomst08@hotmail.com" },
+]
+requires-python = ">=3.7,<4"
+dependencies = [
+    "gpiozero<=1.6.2; python_version <= '3.7'",
+    "gpiozero; python_version >= '3.8'",
+    "lgpio; python_version >= '3.10'",
+    "RPi.GPIO; python_version < '3.14'",
+    "flask",
+    "flask_babel",
+]
+dynamic = [
+    "license",
+]
+
+[project.entry-points."octoprint.plugin"]
+octolight = "octoprint_octolight"
+
+[project.urls]
+Homepage = "https://github.com/thomst08/OctoLight"
+
+[project.optional-dependencies]
+develop = [
+    "go-task-bin",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+    "octoprint_octolight",
+    "octoprint_octolight.*",
+]
