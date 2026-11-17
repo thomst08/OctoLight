@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OctoLight"
-version = "1.0.2"
+version = "1.0.3"
 description = "A simple plugin to toggle a GPIO pin on a RPi. This can be toggled through a button, printer events or custom GCODE."
 authors = [
     { name = "Steven Thomson", email = "thomst08@hotmail.com" },
